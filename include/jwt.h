@@ -25,6 +25,31 @@
 
 #include <stdio.h>
 
+#ifdef _MSC_VER
+
+	#define DEPRECATED(func) __declspec(deprecated) func
+
+	#define alloca _alloca
+	#define strcasecmp _stricmp
+	#define strdup _strdup
+
+	#ifdef JWT_DLL_CONFIG
+		#ifdef JWT_BUILD_SHARED_LIBRARY
+			#define JWT_EXPORT __declspec(dllexport)
+		#else
+			#define JWT_EXPORT __declspec(dllimport)
+		#endif
+	#else
+		#define JWT_EXPORT
+	#endif
+
+#else
+
+	#define DEPRECATED(func) func __attribute__ ((deprecated))
+	#define JWT_EXPORT
+
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -73,7 +98,7 @@ typedef enum jwt_alg {
  *     success.
  * @return 0 on success, valid errno otherwise.
  */
-int jwt_new(jwt_t **jwt);
+JWT_EXPORT int jwt_new(jwt_t **jwt);
 
 /**
  * Verify an existing JWT and allocate a new JWT object from it.
@@ -99,8 +124,8 @@ int jwt_new(jwt_t **jwt);
  *     signature, however, standard validation of the token is still
  *     performed.
  */
-int jwt_decode(jwt_t **jwt, const char *token, const unsigned char *key,
-	       int key_len);
+JWT_EXPORT int jwt_decode(jwt_t **jwt, const char *token,
+	                 const unsigned char *key, int key_len);
 
 /**
  * Free a JWT object and any other resources it is using.
@@ -111,7 +136,7 @@ int jwt_decode(jwt_t **jwt, const char *token, const unsigned char *key,
  * @param jwt Pointer to a JWT object previously created with jwt_new()
  *            or jwt_decode().
  */
-void jwt_free(jwt_t *jwt);
+JWT_EXPORT void jwt_free(jwt_t *jwt);
 
 /**
  * Duplicate an existing JWT object.
@@ -122,7 +147,7 @@ void jwt_free(jwt_t *jwt);
  * @return A new object on success, NULL on error with errno set
  *     appropriately.
  */
-jwt_t *jwt_dup(jwt_t *jwt);
+JWT_EXPORT jwt_t *jwt_dup(jwt_t *jwt);
 
 /** @} */
 
@@ -149,7 +174,7 @@ jwt_t *jwt_dup(jwt_t *jwt);
  * values (e.g. arrays) or use jwt_get_grant_int() to get simple integer
  * values.
  */
-const char *jwt_get_grant(jwt_t *jwt, const char *grant);
+JWT_EXPORT const char *jwt_get_grant(jwt_t *jwt, const char *grant);
 
 /**
  * Return the value of an integer grant.
@@ -166,7 +191,7 @@ const char *jwt_get_grant(jwt_t *jwt, const char *grant);
  * jwt_get_grant_json() to get the JSON representation of more complex
  * values (e.g. arrays) or use jwt_get_grant() to get string values.
  */
-long jwt_get_grant_int(jwt_t *jwt, const char *grant);
+JWT_EXPORT long jwt_get_grant_int(jwt_t *jwt, const char *grant);
 
 /**
  * Return the value of a grant as JSON encoded object string.
@@ -181,7 +206,7 @@ long jwt_get_grant_int(jwt_t *jwt, const char *grant);
  * @return Returns a string for the value, or NULL when not found. The
  *     returned string must be freed by the caller.
  */
-char *jwt_get_grants_json(jwt_t *jwt, const char *grant);
+JWT_EXPORT char *jwt_get_grants_json(jwt_t *jwt, const char *grant);
 
 /**
  * Add a new string grant to this JWT object.
@@ -201,7 +226,7 @@ char *jwt_get_grants_json(jwt_t *jwt, const char *grant);
  * integer grants, then use jwt_add_grant_int(). If you wish to add more
  * complex grants (e.g. an array), then use jwt_add_grants_json().
  */
-int jwt_add_grant(jwt_t *jwt, const char *grant, const char *val);
+JWT_EXPORT int jwt_add_grant(jwt_t *jwt, const char *grant, const char *val);
 
 /**
  * Add a new integer grant to this JWT object.
@@ -220,7 +245,7 @@ int jwt_add_grant(jwt_t *jwt, const char *grant, const char *val);
  * string grants, then use jwt_add_grant(). If you wish to add more
  * complex grants (e.g. an array), then use jwt_add_grants_json().
  */
-int jwt_add_grant_int(jwt_t *jwt, const char *grant, long val);
+JWT_EXPORT int jwt_add_grant_int(jwt_t *jwt, const char *grant, long val);
 
 /**
  * Add grants from a JSON encoded object string.
@@ -234,7 +259,7 @@ int jwt_add_grant_int(jwt_t *jwt, const char *grant, long val);
  * @param json String containing a JSON encoded object of grants.
  * @return Returns 0 on success, valid errno otherwise.
  */
-int jwt_add_grants_json(jwt_t *jwt, const char *json);
+JWT_EXPORT int jwt_add_grants_json(jwt_t *jwt, const char *json);
 
 /**
  * Delete a grant from this JWT object.
@@ -248,7 +273,7 @@ int jwt_add_grants_json(jwt_t *jwt, const char *json);
  *    is NULL, then all grants are deleted.
  * @return Returns 0 on success, valid errno otherwise.
  */
-int jwt_del_grants(jwt_t *jwt, const char *grant);
+JWT_EXPORT int jwt_del_grants(jwt_t *jwt, const char *grant);
 
 /**
  * @deprecated
@@ -261,8 +286,7 @@ int jwt_del_grants(jwt_t *jwt, const char *grant);
  * @param grant String containing the name of the grant to delete.
  * @return Returns 0 on success, valid errno otherwise.
  */
-int jwt_del_grant(jwt_t *jwt, const char *grant)
-	__attribute__ ((deprecated));
+DEPRECATED(JWT_EXPORT int jwt_del_grant(jwt_t *jwt, const char *grant));
 
 /** @} */
 
@@ -287,7 +311,7 @@ int jwt_del_grant(jwt_t *jwt, const char *grant)
  *     used for debugging.
  * @return Returns 0 on success, valid errno otherwise.
  */
-int jwt_dump_fp(jwt_t *jwt, FILE *fp, int pretty);
+JWT_EXPORT int jwt_dump_fp(jwt_t *jwt, FILE *fp, int pretty);
 
 /**
  * Return plain text representation as a string.
@@ -301,7 +325,7 @@ int jwt_dump_fp(jwt_t *jwt, FILE *fp, int pretty);
  * @return A nul terminated string on success, NULL on error with errno
  *     set appropriately.
  */
-char *jwt_dump_str(jwt_t *jwt, int pretty);
+JWT_EXPORT char *jwt_dump_str(jwt_t *jwt, int pretty);
 
 /**
  * Fully encode a JWT object and write it to FILE.
@@ -314,7 +338,7 @@ char *jwt_dump_str(jwt_t *jwt, int pretty);
  * @param fp Valid FILE pointer to write data to.
  * @return Returns 0 on success, valid errno otherwise.
  */
-int jwt_encode_fp(jwt_t *jwt, FILE *fp);
+JWT_EXPORT int jwt_encode_fp(jwt_t *jwt, FILE *fp);
 
 /**
  * Fully encode a JWT object and return as a string.
@@ -326,7 +350,7 @@ int jwt_encode_fp(jwt_t *jwt, FILE *fp);
  * @return A nul terminated string on success, NULL on error with errno
  *     set appropriately.
  */
-char *jwt_encode_str(jwt_t *jwt);
+JWT_EXPORT char *jwt_encode_str(jwt_t *jwt);
 
 /** @} */
 
@@ -355,7 +379,7 @@ char *jwt_encode_str(jwt_t *jwt);
  * @param len The length of the key data.
  * @return Returns 0 on success, valid errno otherwise.
  */
-int jwt_set_alg(jwt_t *jwt, jwt_alg_t alg, const unsigned char *key, int len);
+JWT_EXPORT int jwt_set_alg(jwt_t *jwt, jwt_alg_t alg, const unsigned char *key, int len);
 
 /**
  * Get the jwt_alg_t set for this JWT object.
@@ -365,7 +389,7 @@ int jwt_set_alg(jwt_t *jwt, jwt_alg_t alg, const unsigned char *key, int len);
  * @param jwt Pointer to a JWT object.
  * @returns Returns a jwt_alg_t type for this object.
  */
-jwt_alg_t jwt_get_alg(jwt_t *jwt);
+JWT_EXPORT jwt_alg_t jwt_get_alg(jwt_t *jwt);
 
 /** @} */
 
